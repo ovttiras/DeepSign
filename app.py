@@ -317,6 +317,23 @@ if model is not None:
     col1, col2 = st.columns([1, 1])
     
     with col1:
+        st.markdown("### 📋 Примеры файлов с подписями")
+        
+        # Примеры файлов
+        example_files = [
+            ("example/original signature_1.png", "Настоящая подпись 1"),
+            ("example/original signature_2.png", "Настоящая подпись 2"),
+            ("example/fake signature_1.png", "Поддельная подпись 1"),
+            ("example/fake signature_2.png", "Поддельная подпись 2")
+        ]
+        
+        for file_path, description in example_files:
+            if os.path.exists(file_path):
+                st.markdown(f"• **{description}:** `{file_path}`")
+            else:
+                st.markdown(f"• **{description}:** `{file_path}` (файл не найден)")
+        
+        st.markdown("---")
         st.markdown("### 📤 Загрузка подписи")
         
         uploaded_file = st.file_uploader(
