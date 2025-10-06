@@ -284,10 +284,6 @@ def predict_signature(model, image, model_format="keras"):
 model, model_type, model_format = load_signature_model()
 
 if model is not None:
-    st.success(f"✅ Модель загружена: {model_type}")
-    if model_format == "tflite":
-        st.info("🚀 Используется оптимизированная TensorFlow Lite модель")
-    
     # Сайдбар с информацией
     with st.sidebar:
         st.markdown("### 📊 Информация о системе")
@@ -317,21 +313,40 @@ if model is not None:
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.markdown("### 📋 Примеры файлов с подписями")
+        st.markdown("### 📋 Примеры подписей")
         
-        # Примеры файлов
-        example_files = [
-            ("example/original signature_1.png", "Настоящая подпись 1"),
-            ("example/original signature_2.png", "Настоящая подпись 2"),
-            ("example/fake signature_1.png", "Поддельная подпись 1"),
-            ("example/fake signature_2.png", "Поддельная подпись 2")
-        ]
+        # Кнопки для загрузки примеров
+        col_ex1, col_ex2 = st.columns(2)
         
-        for file_path, description in example_files:
-            if os.path.exists(file_path):
-                st.markdown(f"• **{description}:** `{file_path}`")
-            else:
-                st.markdown(f"• **{description}:** `{file_path}` (файл не найден)")
+        with col_ex1:
+            if st.button("📄 Загрузить настоящую подпись 1", key="load_orig1"):
+                if os.path.exists("example/original signature_1.png"):
+                    st.session_state.example_image = "example/original signature_1.png"
+                    st.rerun()
+                else:
+                    st.error("Файл не найден!")
+            
+            if st.button("📄 Загрузить настоящую подпись 2", key="load_orig2"):
+                if os.path.exists("example/original signature_2.png"):
+                    st.session_state.example_image = "example/original signature_2.png"
+                    st.rerun()
+                else:
+                    st.error("Файл не найден!")
+        
+        with col_ex2:
+            if st.button("📄 Загрузить поддельную подпись 1", key="load_fake1"):
+                if os.path.exists("example/fake signature_1.png"):
+                    st.session_state.example_image = "example/fake signature_1.png"
+                    st.rerun()
+                else:
+                    st.error("Файл не найден!")
+            
+            if st.button("📄 Загрузить поддельную подпись 2", key="load_fake2"):
+                if os.path.exists("example/fake signature_2.png"):
+                    st.session_state.example_image = "example/fake signature_2.png"
+                    st.rerun()
+                else:
+                    st.error("Файл не найден!")
         
         st.markdown("---")
         st.markdown("### 📤 Загрузка подписи")
@@ -342,10 +357,32 @@ if model is not None:
             help="Поддерживаемые форматы: PNG, JPG, JPEG, BMP"
         )
         
+        # Инициализация session state для примера
+        if 'example_image' not in st.session_state:
+            st.session_state.example_image = None
+        
+        # Обработка загруженного файла или примера
+        image = None
+        image_source = None
+        
         if uploaded_file is not None:
-            # Отображение загруженного изображения
+            # Загруженный пользователем файл
             image = Image.open(uploaded_file)
-            st.image(image, caption="Загруженная подпись", use_container_width=True)
+            image_source = "uploaded"
+        elif st.session_state.example_image is not None:
+            # Пример из папки example
+            try:
+                image = Image.open(st.session_state.example_image)
+                image_source = "example"
+                st.info(f"📄 Загружен пример: {st.session_state.example_image}")
+            except Exception as e:
+                st.error(f"Ошибка загрузки примера: {e}")
+                st.session_state.example_image = None
+        
+        if image is not None:
+            # Отображение изображения
+            caption = "Загруженная подпись" if image_source == "uploaded" else f"Пример: {st.session_state.example_image}"
+            st.image(image, caption=caption, use_container_width=True)
             
             # Кнопка анализа
             if st.button("🔍 Анализировать подпись", type="primary"):
